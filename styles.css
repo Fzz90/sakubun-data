@@ -1163,7 +1163,7 @@ html:fullscreen {
 }
 
 .col-name {
-  width: 15%;
+  width: 13.5%;
 }
 
 .col-hours {
@@ -1171,15 +1171,15 @@ html:fullscreen {
 }
 
 .col-app {
-  width: 28.5%;
+  width: 26%;
 }
 
 .col-impact {
-  width: 48%;
+  width: 52%;
 }
 
 .impact-legend {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--chalk-mist);
   white-space: nowrap;
@@ -1189,9 +1189,10 @@ html:fullscreen {
   background: var(--board-deep);
   color: var(--brass);
   border-bottom: 3px solid var(--ink);
-  padding: 14px 14px;
-  font-size: 15px;
+  padding: 12px 14px;
+  font-size: 19px;
   font-weight: 800;
+  letter-spacing: 0.3px;
 }
 
 .respondent-table tbody tr {
@@ -1208,27 +1209,27 @@ html:fullscreen {
 }
 
 .respondent-table tbody td {
-  padding: 12px 14px;
+  padding: 8px 14px;
   vertical-align: middle;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--ink);
 }
 
 .cell-name strong {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 900;
 }
 
-.cell-hours {
-  font-size: 20px;
+.respondent-table tbody td.cell-hours {
+  font-size: 26px;
   font-weight: 700;
   color: var(--board);
 }
 
-.cell-impact {
-  font-size: 15px;
-  line-height: 1.5;
+.respondent-table tbody td.cell-impact {
+  font-size: 20px;
+  line-height: 1.4;
   color: var(--ink);
 }
 
@@ -1267,9 +1268,9 @@ html:fullscreen {
 
 .cat-chip {
   display: inline-block;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 900;
-  padding: 2px 8px;
+  padding: 3px 9px;
   border-radius: 5px;
   margin-right: 6px;
   vertical-align: middle;
@@ -1895,10 +1896,12 @@ html:fullscreen {
     font-size: 14px;
   }
 
+  .respondent-table tbody td.cell-hours,
   .cell-hours {
     font-size: 15px;
   }
 
+  .respondent-table tbody td.cell-impact,
   .cell-impact {
     font-size: 12px;
   }
@@ -1916,6 +1919,8 @@ html:fullscreen {
   .cat-chip {
     display: block;
     width: fit-content;
+    font-size: 12px;
+    padding: 2px 6px;
     margin-bottom: 3px;
   }
 
