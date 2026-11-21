@@ -1409,18 +1409,34 @@ html:fullscreen {
 .closing-signature {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 16px;
+  gap: 12px;
+  max-width: 520px;
 }
 
 .closing-signature strong {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 900;
-  color: var(--chalk-white);
+  color: var(--chalk-mist);
 }
 
-.closing-signature > span {
-  color: var(--chalk-mist);
+.closing-members {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.closing-members li {
+  display: block;
+  background: var(--board);
+  border: 2px solid #2d5a4b;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--chalk-white);
 }
 
 .closing-side {
@@ -1938,6 +1954,11 @@ html:fullscreen {
 
   .closing h2 {
     font-size: 34px;
+  }
+
+  .closing-members li {
+    padding: 10px 14px;
+    font-size: 18px;
   }
 
   .deck-controls {
