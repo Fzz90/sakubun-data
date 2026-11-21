@@ -574,33 +574,18 @@ html:fullscreen {
   background: var(--paper);
 }
 
-.cover-kicker {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--board);
-  letter-spacing: 0.4px;
-  margin-bottom: 18px;
-}
-
 .cover h1 {
-  font-size: 74px;
+  font-size: 76px;
   line-height: 1.24;
   letter-spacing: -1.5px;
   font-weight: 900;
-  margin: 0 0 18px;
+  margin: 0 0 34px;
   color: var(--ink);
 }
 
 .cover h1 rt {
   font-size: 0.28em;
   color: var(--muted);
-}
-
-.cover-formula {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--brass-amber);
-  margin-bottom: 30px;
 }
 
 .roster {
@@ -1308,19 +1293,6 @@ html:fullscreen {
   border: 1.5px solid var(--proof);
 }
 
-.table-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 18px;
-  background: var(--paper-soft);
-  border-top: 2px solid var(--ink);
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--board-deep);
-}
-
 .equation-banner {
   background: var(--board);
   border: 2.5px solid var(--brass);
@@ -1769,11 +1741,7 @@ html:fullscreen {
   .cover h1 {
     font-size: clamp(38px, 8vw, 56px);
     letter-spacing: -1px;
-  }
-
-  .cover-formula {
-    font-size: 17px;
-    margin-bottom: 20px;
+    margin: 0 0 22px;
   }
 
   .cover-right {
@@ -1997,12 +1965,6 @@ html:fullscreen {
     display: block;
     width: fit-content;
     margin-bottom: 3px;
-  }
-
-  .table-foot {
-    flex-direction: column;
-    align-items: flex-start;
-    font-size: 13px;
   }
 
   .closing h2 {
