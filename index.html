@@ -8,8 +8,8 @@
   <title>スマホで一番よく使う機能 · 作文調査発表</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="stylesheet" href="styles.css?v=20261121-3">
-  <script src="app.js?v=20261121-2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261121-4">
+  <script src="app.js?v=20261121-3" defer></script>
 </head>
 <body>
   <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -153,7 +153,7 @@
           <span>ふりがな</span>
           <span class="toggle-state" id="furigana-state">表示</span>
         </button>
-        <button class="icon-button" id="zoom-button" type="button" aria-pressed="false" aria-label="スライドを拡大表示にする" title="拡大表示 (Z)">
+        <button class="icon-button" id="zoom-button" type="button" aria-pressed="false" aria-label="カーソル拡大鏡を有効にする" title="カーソル拡大鏡 (Z)">
           <svg aria-hidden="true"><use href="#icon-zoom-in"/></svg>
         </button>
         <button class="icon-button" id="fullscreen-button" type="button" aria-label="全画面表示にする" title="全画面表示 (F)">
@@ -536,6 +536,10 @@
             <span>5 / 5</span>
           </div>
         </section>
+      </div>
+      <div class="magnifier-lens" id="magnifier-lens" aria-hidden="true" hidden>
+        <div class="magnifier-content" id="magnifier-content"></div>
+        <div class="magnifier-reticle"></div>
       </div>
     </main>
 

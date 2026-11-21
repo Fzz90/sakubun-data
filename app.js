@@ -8,6 +8,8 @@
   const nextButton = document.querySelector('.next');
   const announcer = document.querySelector('#slide-announcer');
   const zoomButton = document.querySelector('#zoom-button');
+  const magnifierLens = document.querySelector('#magnifier-lens');
+  const magnifierContent = document.querySelector('#magnifier-content');
   const fullscreenButton = document.querySelector('#fullscreen-button');
   const furiganaToggle = document.querySelector('#furigana-toggle');
   const furiganaState = document.querySelector('#furigana-state');
@@ -67,14 +69,17 @@
     detail: '最も割合が高いのはSNSで4名（66.6%）を占める。次にゲームが1名（16.7%）、日本語辞典の利用も同じく1名で16.7%を占めている。'
   };
 
-  const ZOOM_FACTOR = 1.55;
+  const LOUPE_MAG = 2.0;
 
   let currentSlide = 0;
   let transitionTimer;
   let toastTimer;
   let pieRafId = null;
   let activeSliceId = null;
-  let isZoomed = false;
+  let isLoupeActive = false;
+  let loupeX = null;
+  let loupeY = null;
+  let loupeClone = null;
 
   function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
@@ -169,6 +174,7 @@
         pieRafId = requestAnimationFrame(step);
       } else {
         pieRafId = null;
+        if (isLoupeActive) syncLoupeClone();
       }
     }
 
@@ -210,29 +216,86 @@
     if (inspectorTitle) inspectorTitle.textContent = info.title;
     if (inspectorFormula) inspectorFormula.textContent = info.formula;
     if (inspectorText) inspectorText.textContent = info.detail;
+    if (isLoupeActive) syncLoupeClone();
   }
 
   function fitStage() {
-    const baseWidth = Math.max(1, stage.getBoundingClientRect().width - 6);
-    const scale = (baseWidth / 1440) * (isZoomed ? ZOOM_FACTOR : 1);
-    stage.style.setProperty('--deck-scale', scale);
+    const baseWidth = Math.max(1, stage.clientWidth);
+    stage.style.setProperty('--deck-scale', baseWidth / 1440);
+    if (isLoupeActive && loupeX !== null && loupeY !== null) {
+      positionLoupe(loupeX, loupeY);
+    }
   }
 
   const zoomUse = zoomButton?.querySelector('use');
 
-  function setZoom(nextState) {
-    isZoomed = Boolean(nextState);
-    stage.classList.toggle('is-zoomed', isZoomed);
-    if (zoomButton) {
-      const label = isZoomed ? '拡大表示を解除' : 'スライドを拡大表示にする';
-      zoomButton.setAttribute('aria-pressed', String(isZoomed));
-      zoomButton.setAttribute('aria-label', label);
-      zoomButton.title = (isZoomed ? '元のサイズに戻す' : '拡大表示') + ' (Z)';
-      if (zoomUse) zoomUse.setAttribute('href', isZoomed ? '#icon-zoom-out' : '#icon-zoom-in');
+  function syncLoupeClone() {
+    if (!magnifierContent || !slides[currentSlide]) return;
+    const sourceSlide = slides[currentSlide];
+    const clone = sourceSlide.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    clone.classList.remove('entering');
+    clone.setAttribute('aria-hidden', 'true');
+    clone.tabIndex = -1;
+
+    if (mobile.matches) {
+      clone.style.width = `${sourceSlide.offsetWidth}px`;
+      clone.style.height = `${sourceSlide.offsetHeight}px`;
     }
-    fitStage();
-    stage.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    announcer.textContent = isZoomed ? 'スライドを拡大表示にしました。' : 'スライドを通常表示に戻しました。';
+
+    magnifierContent.replaceChildren(clone);
+    loupeClone = clone;
+    if (loupeX !== null && loupeY !== null) {
+      positionLoupe(loupeX, loupeY);
+    }
+  }
+
+  function positionLoupe(x, y) {
+    if (!magnifierLens || !loupeClone) return;
+    const lensRadius = (magnifierLens.offsetWidth || 236) / 2;
+    const stageW = stage.clientWidth || 1;
+    const stageH = stage.clientHeight || 1;
+    const cx = Math.max(0, Math.min(stageW, x));
+    const cy = Math.max(0, Math.min(stageH, y));
+    loupeX = cx;
+    loupeY = cy;
+
+    const baseScale = mobile.matches ? 1 : stageW / 1440;
+    const loupeScale = baseScale * LOUPE_MAG;
+    const tx = lensRadius - cx * LOUPE_MAG;
+    const ty = lensRadius - cy * LOUPE_MAG;
+
+    magnifierLens.style.transform = `translate3d(${(cx - lensRadius).toFixed(1)}px, ${(cy - lensRadius).toFixed(1)}px, 0)`;
+    loupeClone.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${loupeScale.toFixed(4)})`;
+  }
+
+  function setLoupe(nextState) {
+    isLoupeActive = Boolean(nextState);
+    stage.classList.toggle('is-loupe', isLoupeActive);
+    if (zoomButton) {
+      const label = isLoupeActive ? 'カーソル拡大鏡をオフにする' : 'カーソル拡大鏡を有効にする';
+      zoomButton.setAttribute('aria-pressed', String(isLoupeActive));
+      zoomButton.setAttribute('aria-label', label);
+      zoomButton.title = (isLoupeActive ? 'カーソル拡大鏡オフ' : 'カーソル拡大鏡') + ' (Z)';
+      if (zoomUse) zoomUse.setAttribute('href', isLoupeActive ? '#icon-zoom-out' : '#icon-zoom-in');
+    }
+
+    if (!magnifierLens) return;
+    if (isLoupeActive) {
+      magnifierLens.hidden = false;
+      loupeX = (stage.clientWidth || 600) / 2;
+      loupeY = mobile.matches
+        ? Math.min((stage.clientHeight || 340) / 2, 220)
+        : (stage.clientHeight || 340) / 2;
+      syncLoupeClone();
+      announcer.textContent = 'カーソル拡大鏡を有効にしました。カーソルを動かすと拡大できます。';
+    } else {
+      magnifierLens.hidden = true;
+      magnifierContent?.replaceChildren();
+      loupeClone = null;
+      announcer.textContent = 'カーソル拡大鏡を終了しました。';
+    }
   }
 
   function readHash() {
@@ -291,7 +354,12 @@
     }
 
     if (focus || focusIsInSlide) slides[index].focus({ preventScroll: true });
-    if (isZoomed) stage.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    if (isLoupeActive) {
+      syncLoupeClone();
+      if (magnifierLens && loupeX !== null && loupeY !== null) {
+        magnifierLens.hidden = false;
+      }
+    }
     if (changed && mobile.matches) window.scrollTo({ top: 0, behavior: 'instant' });
     announcer.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + '：' + slides[index].dataset.title;
   }
@@ -315,6 +383,7 @@
     const active = !hidden;
     furiganaToggle.setAttribute('aria-pressed', String(active));
     furiganaState.textContent = active ? '表示' : '非表示';
+    if (isLoupeActive) syncLoupeClone();
     announcer.textContent = active ? 'ふりがなを表示しました。' : 'ふりがなを非表示にしました。';
   }
 
@@ -353,7 +422,7 @@
   nextButton.addEventListener('click', () => goToSlide(currentSlide + 1, { focus: true }));
   furiganaToggle.addEventListener('click', toggleFurigana);
   if (zoomButton) {
-    zoomButton.addEventListener('click', () => setZoom(!isZoomed));
+    zoomButton.addEventListener('click', () => setLoupe(!isLoupeActive));
   }
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
@@ -415,20 +484,18 @@
       closeMobileNav({ restoreFocus: true });
       return;
     }
-    if (event.key === 'Escape' && isZoomed) {
+    if (event.key === 'Escape' && isLoupeActive) {
       event.preventDefault();
-      setZoom(false);
+      setLoupe(false);
       return;
     }
     const target = event.target;
     if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
     if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(event.key)) {
-      if (isZoomed && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) return;
       event.preventDefault();
       goToSlide(currentSlide + 1, { focus: true });
     } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) {
-      if (isZoomed && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) return;
       event.preventDefault();
       goToSlide(currentSlide - 1, { focus: true });
     } else if (event.key === 'Home' || event.key === 'End') {
@@ -436,7 +503,7 @@
       goToSlide(event.key === 'Home' ? 0 : slides.length - 1, { focus: true });
     } else if (event.key.toLowerCase() === 'z') {
       event.preventDefault();
-      setZoom(!isZoomed);
+      setLoupe(!isLoupeActive);
     } else if (event.key.toLowerCase() === 'f') {
       event.preventDefault();
       toggleFullscreen();
@@ -446,37 +513,26 @@
     }
   });
 
-  let panStart = null;
-  stage.addEventListener('pointerdown', event => {
-    if (!isZoomed || event.pointerType !== 'mouse' || event.button !== 0) return;
-    if (event.target.closest('button, a, input, textarea, select, [role="button"]')) return;
-    panStart = {
-      x: event.clientX,
-      y: event.clientY,
-      scrollLeft: stage.scrollLeft,
-      scrollTop: stage.scrollTop
-    };
-    stage.classList.add('is-panning');
-  });
-
-  window.addEventListener('pointermove', event => {
-    if (!panStart) return;
-    stage.scrollLeft = panStart.scrollLeft - (event.clientX - panStart.x);
-    stage.scrollTop = panStart.scrollTop - (event.clientY - panStart.y);
-  });
-
-  function stopPan() {
-    if (!panStart) return;
-    panStart = null;
-    stage.classList.remove('is-panning');
+  function handleStagePointer(event) {
+    if (!isLoupeActive || !magnifierLens) return;
+    const rect = stage.getBoundingClientRect();
+    const x = event.clientX - rect.left - stage.clientLeft;
+    const y = event.clientY - rect.top - stage.clientTop;
+    magnifierLens.hidden = false;
+    positionLoupe(x, y);
   }
 
-  window.addEventListener('pointerup', stopPan);
-  window.addEventListener('pointercancel', stopPan);
+  stage.addEventListener('pointerenter', handleStagePointer);
+  stage.addEventListener('pointerdown', handleStagePointer);
+  stage.addEventListener('pointermove', handleStagePointer);
+  stage.addEventListener('pointerleave', event => {
+    if (!isLoupeActive || !magnifierLens || event.pointerType !== 'mouse') return;
+    magnifierLens.hidden = true;
+  });
 
   let touchStart = null;
   stage.addEventListener('touchstart', event => {
-    if (isZoomed || event.touches.length !== 1 || event.target.closest('button, input, textarea, a, [role="button"]')) {
+    if (isLoupeActive || event.touches.length !== 1 || event.target.closest('button, input, textarea, a, [role="button"]')) {
       touchStart = null;
       return;
     }
