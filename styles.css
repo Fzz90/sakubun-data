@@ -1395,47 +1395,14 @@ html:fullscreen {
 }
 
 .closing h2 {
-  font-size: 62px;
-  line-height: 1.2;
-  letter-spacing: -1px;
+  font-size: 92px;
+  line-height: 1.18;
+  letter-spacing: -1.5px;
   font-weight: 900;
   color: var(--brass);
 }
 
 .closing h2 > span {
-  color: var(--chalk-white);
-}
-
-.closing-signature {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 520px;
-}
-
-.closing-signature strong {
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--chalk-mist);
-}
-
-.closing-members {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.closing-members li {
-  display: block;
-  background: var(--board);
-  border: 2px solid #2d5a4b;
-  border-radius: 10px;
-  padding: 12px 20px;
-  font-size: 24px;
-  line-height: 1.3;
-  font-weight: 800;
   color: var(--chalk-white);
 }
 
@@ -1953,12 +1920,7 @@ html:fullscreen {
   }
 
   .closing h2 {
-    font-size: 34px;
-  }
-
-  .closing-members li {
-    padding: 10px 14px;
-    font-size: 18px;
+    font-size: 40px;
   }
 
   .deck-controls {
