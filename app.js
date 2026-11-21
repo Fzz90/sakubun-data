@@ -184,6 +184,14 @@
       if (pctEl) {
         pctEl.textContent = (slice.pct * ratio).toFixed(1) + '%';
       }
+      if (loupeClone) {
+        var clonePath = loupeClone.querySelector('.pie-slice-path[data-slice="' + slice.id + '"]');
+        var cloneLabel = loupeClone.querySelector('.pie-slice-label[data-label="' + slice.id + '"]');
+        var clonePct = loupeClone.querySelector('.legend-pct[data-pct="' + slice.id + '"]');
+        if (clonePath && pathEl) clonePath.setAttribute('d', pathEl.getAttribute('d') || '');
+        if (cloneLabel && labelEl) cloneLabel.style.opacity = labelEl.style.opacity;
+        if (clonePct && pctEl) clonePct.textContent = pctEl.textContent;
+      }
     }
   }
 

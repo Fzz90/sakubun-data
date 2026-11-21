@@ -381,6 +381,13 @@ html:fullscreen {
   transition: none !important;
 }
 
+.magnifier-content .cover .lines [data-line],
+.magnifier-content .cover .roster,
+.magnifier-content .cover .math-cover-svg {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 .magnifier-reticle {
   position: absolute;
   top: 0;
