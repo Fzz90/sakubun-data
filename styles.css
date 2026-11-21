@@ -1,5 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,600;0,700;1,600&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap');
 
+@font-face {
+  font-family: 'CambriaMathDigits';
+  src: local('Cambria Math');
+  unicode-range: U+0030-0039;
+}
+
 :root {
   --ink: #16211c;
   --muted: #46564e;
@@ -22,8 +28,8 @@
   --proof: #b5331c;
   --proof-ink: #8a2110;
   --proof-soft: #fdece7;
-  --jp: 'Zen Kaku Gothic New', 'Yu Gothic', Meiryo, sans-serif;
-  --math: 'STIX Two Text', Georgia, serif;
+  --jp: 'CambriaMathDigits', 'Zen Kaku Gothic New', 'Yu Gothic', Meiryo, sans-serif;
+  --math: 'Cambria Math', 'STIX Two Text', Georgia, serif;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --t-press: 140ms;
   --t-hover: 180ms;

@@ -16,7 +16,7 @@ Palette cap: 2 core colors (Chalkboard Pine, Proof Vermilion) + 1 accent (Compas
 - **Chalkboard Pine (`--board` / `--board-deep` / `--board-soft`)**: `#163A2E` / `#0F2A21` / `#DCECE5` (`13.89:1` chalk white `#F7F4EA` on `--board-deep`, `11.14:1` mist `#CFE0D8` on `--board-deep`)
 - **Compass Brass (`--brass` / `--brass-hover` / `--brass-ink` / `--brass-soft` / `--brass-amber`)**: `#F2B830` / `#DFA218` / `#5E3A00` / `#FFF4D4` / `#855300` (`9.20:1` ink on `--brass`, `8.50:1` `--brass` on `--board-deep`, `6.07:1` `--brass-amber` on `--paper`)
 - **Proof Vermilion (`--proof` / `--proof-ink` / `--proof-soft`)**: `#B5331C` / `#8A2110` / `#FDECE7` (`5.68:1` on `--paper`, `5.98:1` chalk white on `--proof`, `7.95:1` `--proof-ink` on `--proof-soft`)
-- **Typography**: `Zen Kaku Gothic New` (`500;700;900` for Japanese headings, body, and furigana) paired with `STIX Two Text` (`600;700`, italic variables and tabular math notation: `n = 6`, `x̄ = 7.5h`, `66.6%`, `360°`, `Q.E.D.`).
+- **Typography**: `Zen Kaku Gothic New` (`500;700;900` for Japanese headings, body, and furigana) paired with `Cambria Math` (with `STIX Two Text` fallback for non-Windows devices) for all numerals and mathematical notation (`n = 6`, `x̄ = 7.5h`, `66.6%`, `360°`, `Q.E.D.`).
 
 ## Slide Architecture (5 Slides)
 1. **表紙 (`Cover`)**: Asymmetric 55/45 split pairing display title, `n = 6` summary, A組 4-member roster, and 3-plate mathematical SVG drafting art (protractor `360°` ratio circle, daily hours bar plot `x̄ = 7.5h`, and `n = 6` brass seal).
