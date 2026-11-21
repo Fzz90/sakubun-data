@@ -8,11 +8,11 @@
   <title>スマホで一番よく使う機能 · 作文調査発表</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="stylesheet" href="styles.css?v=20261121-4">
-  <script src="app.js?v=20261121-3" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261121-5">
+  <script src="app.js?v=20261121-4" defer></script>
 </head>
 <body>
-  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true">
     <defs>
       <pattern id="draft-grid" width="24" height="24" patternUnits="userSpaceOnUse">
         <path d="M24 0H0V24" fill="none" stroke="#F7F4EA" stroke-width="0.8" opacity="0.12"/>
@@ -144,7 +144,7 @@
     <header class="app-header">
       <a class="brand" href="#slide-1" aria-label="スマホ調査発表、表紙に戻る">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><use href="#brand-math"/></svg>
+          <svg viewBox="0 0 24 24"><use href="#brand-math" xlink:href="#brand-math"/></svg>
         </span>
         <span>スマホ調査 <span class="brand-sub">· 数学統計</span></span>
       </a>
@@ -154,10 +154,10 @@
           <span class="toggle-state" id="furigana-state">表示</span>
         </button>
         <button class="icon-button" id="zoom-button" type="button" aria-pressed="false" aria-label="カーソル拡大鏡を有効にする" title="カーソル拡大鏡 (Z)">
-          <svg aria-hidden="true"><use href="#icon-zoom-in"/></svg>
+          <svg aria-hidden="true"><use href="#icon-zoom-in" xlink:href="#icon-zoom-in"/></svg>
         </button>
         <button class="icon-button" id="fullscreen-button" type="button" aria-label="全画面表示にする" title="全画面表示 (F)">
-          <svg aria-hidden="true"><use href="#expand"/></svg>
+          <svg aria-hidden="true"><use href="#expand" xlink:href="#expand"/></svg>
         </button>
       </div>
     </header>
@@ -189,12 +189,12 @@
           </div>
           <div class="cover-right">
             <div class="cover-art-wrap" aria-hidden="true">
-              <svg class="math-cover-svg" viewBox="0 0 460 480"><use href="#math-cover-art"/></svg>
+              <svg class="math-cover-svg" viewBox="0 0 460 480"><use href="#math-cover-art" xlink:href="#math-cover-art"/></svg>
             </div>
             <div class="cover-right-footer">
               <button class="start-button" type="button" data-go="1">
                 <span><ruby>発表<rt>はっぴょう</rt></ruby>を<ruby>始<rt>はじ</rt></ruby>める</span>
-                <svg aria-hidden="true"><use href="#arrow-right"/></svg>
+                <svg aria-hidden="true"><use href="#arrow-right" xlink:href="#arrow-right"/></svg>
               </button>
             </div>
           </div>
@@ -289,7 +289,7 @@
                 <span class="panel-tag tag-board"><ruby>最<rt>もっと</rt></ruby>もよく<ruby>使<rt>つか</rt></ruby>う<ruby>機能<rt>きのう</rt></ruby> (<span class="math-font">n = 6</span>)</span>
                 <div class="chart-controls">
                   <button type="button" class="chart-btn chart-btn-primary" id="pie-replay-btn">
-                    <svg aria-hidden="true"><use href="#icon-replay"/></svg>
+                    <svg aria-hidden="true"><use href="#icon-replay" xlink:href="#icon-replay"/></svg>
                     <span><ruby>再<rt>さい</rt></ruby><ruby>生<rt>せい</rt></ruby></span>
                   </button>
                   <button type="button" class="chart-btn" id="pie-all-btn" aria-pressed="true">
@@ -523,9 +523,9 @@
             </div>
 
             <div class="closing-side">
-              <svg class="math-end-svg" viewBox="0 0 460 460" aria-hidden="true"><use href="#math-end-art"/></svg>
+              <svg class="math-end-svg" viewBox="0 0 460 460" aria-hidden="true"><use href="#math-end-art" xlink:href="#math-end-art"/></svg>
               <button class="restart-button" type="button" data-go="0">
-                <svg aria-hidden="true"><use href="#arrow-left"/></svg>
+                <svg aria-hidden="true"><use href="#arrow-left" xlink:href="#arrow-left"/></svg>
                 <span><ruby>最初<rt>さいしょ</rt></ruby>に<ruby>戻<rt>もど</rt></ruby>る</span>
               </button>
             </div>
@@ -560,8 +560,8 @@
         <button type="button" data-go="4" aria-label="スライド 5：結論"><span class="nav-number">5</span><span class="nav-title">結論</span></button>
       </nav>
       <div class="arrow-controls">
-        <button type="button" class="icon-button previous" aria-label="前のスライド" disabled><svg><use href="#arrow-left"/></svg></button>
-        <button type="button" class="icon-button next" aria-label="次のスライド"><svg><use href="#arrow-right"/></svg></button>
+        <button type="button" class="icon-button previous" aria-label="前のスライド" disabled><svg><use href="#arrow-left" xlink:href="#arrow-left"/></svg></button>
+        <button type="button" class="icon-button next" aria-label="次のスライド"><svg><use href="#arrow-right" xlink:href="#arrow-right"/></svg></button>
       </div>
     </footer>
   </div>

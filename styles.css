@@ -207,6 +207,7 @@ html:fullscreen {
 }
 
 .app {
+  width: calc((100vh - 118px) * 16 / 9);
   width: min(2400px, calc((100dvh - 118px) * 16 / 9));
   max-width: calc(100% - 24px);
   margin: 0 auto;
@@ -358,13 +359,19 @@ html:fullscreen {
 
 .magnifier-content {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   pointer-events: none;
 }
 
 .magnifier-content .slide {
   position: relative;
-  inset: auto;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
   transform-origin: top left;
   animation: none !important;
 }
@@ -376,7 +383,10 @@ html:fullscreen {
 
 .magnifier-reticle {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   border-radius: 50%;
   box-shadow: inset 0 0 0 2px rgba(242, 184, 48, 0.55);
   pointer-events: none;
@@ -386,32 +396,50 @@ html:fullscreen {
 .magnifier-reticle::after {
   content: '';
   position: absolute;
-  background: rgba(181, 51, 28, 0.55);
 }
 
 .magnifier-reticle::before {
   left: 50%;
   top: 6px;
   bottom: 6px;
-  width: 1.5px;
-  transform: translateX(-50%);
-  mask-image: linear-gradient(to bottom, #000 0 10px, transparent 10px calc(100% - 10px), #000 calc(100% - 10px));
+  width: 2px;
+  margin-left: -1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(181, 51, 28, 0.6) 0,
+    rgba(181, 51, 28, 0.6) 10px,
+    transparent 10px,
+    transparent calc(100% - 10px),
+    rgba(181, 51, 28, 0.6) calc(100% - 10px),
+    rgba(181, 51, 28, 0.6) 100%
+  );
 }
 
 .magnifier-reticle::after {
   top: 50%;
   left: 6px;
   right: 6px;
-  height: 1.5px;
-  transform: translateY(-50%);
-  mask-image: linear-gradient(to right, #000 0 10px, transparent 10px calc(100% - 10px), #000 calc(100% - 10px));
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(
+    to right,
+    rgba(181, 51, 28, 0.6) 0,
+    rgba(181, 51, 28, 0.6) 10px,
+    transparent 10px,
+    transparent calc(100% - 10px),
+    rgba(181, 51, 28, 0.6) calc(100% - 10px),
+    rgba(181, 51, 28, 0.6) 100%
+  );
 }
 
 .slide {
   width: 1440px;
   height: 810px;
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   transform: scale(var(--deck-scale));
   transform-origin: top left;
   background: var(--paper);
@@ -435,12 +463,10 @@ html:fullscreen {
 
 @keyframes page-reveal {
   from {
-    opacity: 0.6;
-    clip-path: inset(0 2.5% 0 0);
+    opacity: 0;
   }
   to {
     opacity: 1;
-    clip-path: inset(0 0 0 0);
   }
 }
 
@@ -483,22 +509,20 @@ html:fullscreen {
   display: block;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .js .cover.active .lines [data-line] {
-    transform: translateY(108%);
-    animation: line-up 700ms var(--ease-out) forwards;
-    animation-delay: calc(var(--i, 0) * 90ms + 60ms);
-  }
+.js .cover.active .lines [data-line] {
+  transform: translateY(108%);
+  animation: line-up 700ms var(--ease-out) forwards;
+  animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+}
 
-  .js .cover.active .roster {
-    opacity: 0;
-    transform: translateY(14px);
-    animation: gentle-rise var(--t-reveal) var(--ease-out) 180ms forwards;
-  }
+.js .cover.active .roster {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: gentle-rise var(--t-reveal) var(--ease-out) 180ms forwards;
+}
 
-  .js .cover.active .math-cover-svg {
-    animation: panel-snap 740ms var(--ease-out) both;
-  }
+.js .cover.active .math-cover-svg {
+  animation: panel-snap 740ms var(--ease-out) both;
 }
 
 @keyframes line-up {
@@ -1614,6 +1638,7 @@ html:fullscreen {
   }
 
   .app {
+    width: calc((100vh - 126px) * 16 / 9);
     width: min(2400px, calc((100dvh - 126px) * 16 / 9));
   }
 }
@@ -1985,11 +2010,7 @@ html:fullscreen {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation: none !important;
-    transition: none !important;
+  html {
     scroll-behavior: auto !important;
   }
 }
@@ -2058,7 +2079,10 @@ html:fullscreen {
   .slide[hidden] {
     display: block !important;
     position: relative !important;
-    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
     width: 1440px !important;
     height: 810px !important;
     transform: none !important;

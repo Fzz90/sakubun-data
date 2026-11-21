@@ -1,39 +1,43 @@
-(() => {
+(function () {
   'use strict';
 
-  const slides = [...document.querySelectorAll('.slide')];
-  const stage = document.querySelector('.stage');
-  const slideButtons = [...document.querySelectorAll('.slide-nav [data-go]')];
-  const previousButton = document.querySelector('.previous');
-  const nextButton = document.querySelector('.next');
-  const announcer = document.querySelector('#slide-announcer');
-  const zoomButton = document.querySelector('#zoom-button');
-  const magnifierLens = document.querySelector('#magnifier-lens');
-  const magnifierContent = document.querySelector('#magnifier-content');
-  const fullscreenButton = document.querySelector('#fullscreen-button');
-  const furiganaToggle = document.querySelector('#furigana-toggle');
-  const furiganaState = document.querySelector('#furigana-state');
-  const mobileSlideTrigger = document.querySelector('#mobile-slide-trigger');
-  const mobileSlideLabel = document.querySelector('#mobile-slide-label');
-  const slideNav = document.querySelector('#slide-nav-list');
-  const mobile = window.matchMedia('(max-width: 900px)');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.querySelector('.stage');
+  var slideButtons = Array.prototype.slice.call(document.querySelectorAll('.slide-nav [data-go]'));
+  var previousButton = document.querySelector('.previous');
+  var nextButton = document.querySelector('.next');
+  var announcer = document.querySelector('#slide-announcer');
+  var zoomButton = document.querySelector('#zoom-button');
+  var magnifierLens = document.querySelector('#magnifier-lens');
+  var magnifierContent = document.querySelector('#magnifier-content');
+  var fullscreenButton = document.querySelector('#fullscreen-button');
+  var furiganaToggle = document.querySelector('#furigana-toggle');
+  var furiganaState = document.querySelector('#furigana-state');
+  var mobileSlideTrigger = document.querySelector('#mobile-slide-trigger');
+  var mobileSlideLabel = document.querySelector('#mobile-slide-label');
+  var slideNav = document.querySelector('#slide-nav-list');
+  var mobile = window.matchMedia ? window.matchMedia('(max-width: 900px)') : { matches: false };
 
-  const pieTicksGroup = document.querySelector('#pie-ticks');
-  const pieReplayBtn = document.querySelector('#pie-replay-btn');
-  const pieAllBtn = document.querySelector('#pie-all-btn');
-  const sliceGroups = [...document.querySelectorAll('.pie-slice-group')];
-  const legendCards = [...document.querySelectorAll('.legend-card')];
-  const inspectorTitle = document.querySelector('#inspector-title');
-  const inspectorFormula = document.querySelector('#inspector-formula');
-  const inspectorText = document.querySelector('#inspector-text');
+  var pieTicksGroup = document.querySelector('#pie-ticks');
+  var pieReplayBtn = document.querySelector('#pie-replay-btn');
+  var pieAllBtn = document.querySelector('#pie-all-btn');
+  var sliceGroups = Array.prototype.slice.call(document.querySelectorAll('.pie-slice-group'));
+  var legendCards = Array.prototype.slice.call(document.querySelectorAll('.legend-card'));
+  var inspectorTitle = document.querySelector('#inspector-title');
+  var inspectorFormula = document.querySelector('#inspector-formula');
+  var inspectorText = document.querySelector('#inspector-text');
 
-  const PIE_CX = 210;
-  const PIE_CY = 210;
-  const PIE_R = 148;
-  const SWEEP_MS = 1150;
+  var PIE_CX = 210;
+  var PIE_CY = 210;
+  var PIE_R = 148;
+  var SWEEP_MS = 1150;
+  var LOUPE_MAG = 2.0;
+  var XLINK_NS = 'http://www.w3.org/1999/xlink';
+  var supportsAspectRatio = Boolean(
+    window.CSS && typeof window.CSS.supports === 'function' && window.CSS.supports('aspect-ratio', '16 / 9')
+  );
 
-  const SLICES = [
+  var SLICES = [
     {
       id: 'sns',
       startDeg: 0,
@@ -63,30 +67,64 @@
     }
   ];
 
-  const SUMMARY_DETAIL = {
+  var SUMMARY_DETAIL = {
     title: '全体のまとめ（6名）',
     formula: '4/6 + 1/6 + 1/6 = 1',
     detail: '最も割合が高いのはSNSで4名（66.6%）を占める。次にゲームが1名（16.7%）、日本語辞典の利用も同じく1名で16.7%を占めている。'
   };
 
-  const LOUPE_MAG = 2.0;
+  var currentSlide = 0;
+  var transitionTimer;
+  var toastTimer;
+  var pieRafId = null;
+  var pieFallbackTimer = null;
+  var activeSliceId = null;
+  var isLoupeActive = false;
+  var loupeX = null;
+  var loupeY = null;
+  var loupeClone = null;
 
-  let currentSlide = 0;
-  let transitionTimer;
-  let toastTimer;
-  let pieRafId = null;
-  let activeSliceId = null;
-  let isLoupeActive = false;
-  let loupeX = null;
-  let loupeY = null;
-  let loupeClone = null;
+  function nowMs() {
+    return window.performance && typeof window.performance.now === 'function'
+      ? window.performance.now()
+      : Date.now();
+  }
+
+  function setUseHref(useEl, id) {
+    if (!useEl) return;
+    useEl.setAttribute('href', id);
+    try {
+      useEl.setAttributeNS(XLINK_NS, 'xlink:href', id);
+    } catch (err) {
+      useEl.setAttribute('xlink:href', id);
+    }
+  }
+
+  function clearChildren(node) {
+    if (!node) return;
+    while (node.firstChild) {
+      node.removeChild(node.firstChild);
+    }
+  }
+
+  function closestEl(target, selector) {
+    if (!target || target.nodeType !== 1) return null;
+    if (typeof target.closest === 'function') return target.closest(selector);
+    var el = target;
+    while (el && el.nodeType === 1) {
+      var matches = el.matches || el.msMatchesSelector || el.webkitMatchesSelector;
+      if (matches && matches.call(el, selector)) return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
 
   function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
   }
 
   function polarToCartesian(cx, cy, r, clockDeg) {
-    const rad = ((clockDeg - 90) * Math.PI) / 180;
+    var rad = ((clockDeg - 90) * Math.PI) / 180;
     return {
       x: cx + r * Math.cos(rad),
       y: cy + r * Math.sin(rad)
@@ -94,26 +132,28 @@
   }
 
   function buildWedgePath(startDeg, endDeg) {
-    const span = endDeg - startDeg;
+    var span = endDeg - startDeg;
     if (span <= 0.05) return '';
     // SVG arcs collapse when start and end points coincide at 360 degrees.
-    const clampedEnd = span >= 359.95 ? startDeg + 359.95 : endDeg;
-    const start = polarToCartesian(PIE_CX, PIE_CY, PIE_R, startDeg);
-    const end = polarToCartesian(PIE_CX, PIE_CY, PIE_R, clampedEnd);
-    const largeArc = clampedEnd - startDeg > 180 ? 1 : 0;
-    return `M${PIE_CX} ${PIE_CY} L${start.x.toFixed(2)} ${start.y.toFixed(2)} A${PIE_R} ${PIE_R} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z`;
+    var clampedEnd = span >= 359.95 ? startDeg + 359.95 : endDeg;
+    var start = polarToCartesian(PIE_CX, PIE_CY, PIE_R, startDeg);
+    var end = polarToCartesian(PIE_CX, PIE_CY, PIE_R, clampedEnd);
+    var largeArc = clampedEnd - startDeg > 180 ? 1 : 0;
+    return 'M' + PIE_CX + ' ' + PIE_CY +
+      ' L' + start.x.toFixed(2) + ' ' + start.y.toFixed(2) +
+      ' A' + PIE_R + ' ' + PIE_R + ' 0 ' + largeArc + ' 1 ' + end.x.toFixed(2) + ' ' + end.y.toFixed(2) + ' Z';
   }
 
   function initProtractorTicks() {
     if (!pieTicksGroup || pieTicksGroup.childElementCount > 0) return;
-    const ns = 'http://www.w3.org/2000/svg';
-    for (let deg = 0; deg < 360; deg += 30) {
-      const isMajor = deg % 90 === 0;
-      const innerR = isMajor ? 166 : 172;
-      const outerR = 182;
-      const p1 = polarToCartesian(PIE_CX, PIE_CY, innerR, deg);
-      const p2 = polarToCartesian(PIE_CX, PIE_CY, outerR, deg);
-      const line = document.createElementNS(ns, 'line');
+    var ns = 'http://www.w3.org/2000/svg';
+    for (var deg = 0; deg < 360; deg += 30) {
+      var isMajor = deg % 90 === 0;
+      var innerR = isMajor ? 166 : 172;
+      var outerR = 182;
+      var p1 = polarToCartesian(PIE_CX, PIE_CY, innerR, deg);
+      var p2 = polarToCartesian(PIE_CX, PIE_CY, outerR, deg);
+      var line = document.createElementNS(ns, 'line');
       line.setAttribute('x1', p1.x.toFixed(2));
       line.setAttribute('y1', p1.y.toFixed(2));
       line.setAttribute('x2', p2.x.toFixed(2));
@@ -124,26 +164,27 @@
   }
 
   function renderPieAt(progress) {
-    const currentDeg = progress * 360;
-    SLICES.forEach(slice => {
-      const pathEl = document.querySelector(`.pie-slice-path[data-slice="${slice.id}"]`);
-      const labelEl = document.querySelector(`.pie-slice-label[data-label="${slice.id}"]`);
-      const pctEl = document.querySelector(`.legend-pct[data-pct="${slice.id}"]`);
-      const span = slice.endDeg - slice.startDeg;
-      const drawn = Math.max(0, Math.min(span, currentDeg - slice.startDeg));
-      const ratio = drawn / span;
+    var currentDeg = progress * 360;
+    for (var i = 0; i < SLICES.length; i++) {
+      var slice = SLICES[i];
+      var pathEl = document.querySelector('.pie-slice-path[data-slice="' + slice.id + '"]');
+      var labelEl = document.querySelector('.pie-slice-label[data-label="' + slice.id + '"]');
+      var pctEl = document.querySelector('.legend-pct[data-pct="' + slice.id + '"]');
+      var span = slice.endDeg - slice.startDeg;
+      var drawn = Math.max(0, Math.min(span, currentDeg - slice.startDeg));
+      var ratio = drawn / span;
 
       if (pathEl) {
         pathEl.setAttribute('d', drawn > 0.05 ? buildWedgePath(slice.startDeg, slice.startDeg + drawn) : '');
       }
       if (labelEl) {
-        const labelOpacity = ratio >= 0.72 ? Math.min(1, (ratio - 0.72) / 0.28) : 0;
+        var labelOpacity = ratio >= 0.72 ? Math.min(1, (ratio - 0.72) / 0.28) : 0;
         labelEl.style.opacity = labelOpacity.toFixed(2);
       }
       if (pctEl) {
         pctEl.textContent = (slice.pct * ratio).toFixed(1) + '%';
       }
-    });
+    }
   }
 
   function stopPieAnimation() {
@@ -151,68 +192,85 @@
       cancelAnimationFrame(pieRafId);
       pieRafId = null;
     }
+    if (pieFallbackTimer !== null) {
+      clearTimeout(pieFallbackTimer);
+      pieFallbackTimer = null;
+    }
   }
 
   function playPieAnimation() {
     stopPieAnimation();
-    if (reducedMotion.matches) {
-      renderPieAt(1);
-      return;
-    }
-    const startTs = performance.now();
+    var startTs = nowMs();
     renderPieAt(0);
 
-    function step(now) {
+    function step() {
       if (currentSlide !== 2 || document.hidden) {
         stopPieAnimation();
         renderPieAt(1);
+        if (isLoupeActive) syncLoupeClone();
         return;
       }
-      const t = Math.min(1, (now - startTs) / SWEEP_MS);
+      var elapsed = Math.max(0, nowMs() - startTs);
+      var t = Math.min(1, elapsed / SWEEP_MS);
       renderPieAt(easeOutQuart(t));
       if (t < 1) {
         pieRafId = requestAnimationFrame(step);
       } else {
-        pieRafId = null;
+        stopPieAnimation();
+        renderPieAt(1);
         if (isLoupeActive) syncLoupeClone();
       }
     }
 
     pieRafId = requestAnimationFrame(step);
+    pieFallbackTimer = setTimeout(function () {
+      stopPieAnimation();
+      renderPieAt(1);
+      if (isLoupeActive) syncLoupeClone();
+    }, SWEEP_MS + 250);
+  }
+
+  function findSliceById(id) {
+    for (var i = 0; i < SLICES.length; i++) {
+      if (SLICES[i].id === id) return SLICES[i];
+    }
+    return null;
   }
 
   function selectSlice(sliceId) {
     activeSliceId = activeSliceId === sliceId ? null : sliceId;
-    const selected = SLICES.find(s => s.id === activeSliceId) || null;
+    var selected = findSliceById(activeSliceId);
 
-    sliceGroups.forEach(group => {
-      const id = group.dataset.slice;
-      const slice = SLICES.find(s => s.id === id);
-      const isSelected = Boolean(selected && selected.id === id);
+    for (var i = 0; i < sliceGroups.length; i++) {
+      var group = sliceGroups[i];
+      var id = group.getAttribute('data-slice');
+      var slice = findSliceById(id);
+      var isSelected = Boolean(selected && selected.id === id);
       group.setAttribute('aria-pressed', String(isSelected));
       group.classList.toggle('is-dimmed', Boolean(selected && !isSelected));
       if (isSelected && slice) {
-        const midDeg = (slice.startDeg + slice.endDeg) / 2;
-        const rad = ((midDeg - 90) * Math.PI) / 180;
-        const dx = (Math.cos(rad) * 10).toFixed(2);
-        const dy = (Math.sin(rad) * 10).toFixed(2);
-        group.style.transform = `translate(${dx}px, ${dy}px)`;
+        var midDeg = (slice.startDeg + slice.endDeg) / 2;
+        var rad = ((midDeg - 90) * Math.PI) / 180;
+        var dx = (Math.cos(rad) * 10).toFixed(2);
+        var dy = (Math.sin(rad) * 10).toFixed(2);
+        group.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
       } else {
         group.style.transform = '';
       }
-    });
+    }
 
-    legendCards.forEach(card => {
-      const isSelected = Boolean(selected && card.dataset.select === selected.id);
-      card.classList.toggle('is-selected', isSelected);
-      card.setAttribute('aria-pressed', String(isSelected));
-    });
+    for (var j = 0; j < legendCards.length; j++) {
+      var card = legendCards[j];
+      var cardSelected = Boolean(selected && card.getAttribute('data-select') === selected.id);
+      card.classList.toggle('is-selected', cardSelected);
+      card.setAttribute('aria-pressed', String(cardSelected));
+    }
 
     if (pieAllBtn) {
       pieAllBtn.setAttribute('aria-pressed', String(!selected));
     }
 
-    const info = selected || SUMMARY_DETAIL;
+    var info = selected || SUMMARY_DETAIL;
     if (inspectorTitle) inspectorTitle.textContent = info.title;
     if (inspectorFormula) inspectorFormula.textContent = info.formula;
     if (inspectorText) inspectorText.textContent = info.detail;
@@ -220,31 +278,38 @@
   }
 
   function fitStage() {
-    const baseWidth = Math.max(1, stage.clientWidth);
-    stage.style.setProperty('--deck-scale', baseWidth / 1440);
+    var baseWidth = Math.max(1, stage.clientWidth);
+    stage.style.setProperty('--deck-scale', String(baseWidth / 1440));
+    if (!supportsAspectRatio) {
+      stage.style.height = mobile.matches ? 'auto' : Math.round((baseWidth * 9) / 16) + 'px';
+    }
     if (isLoupeActive && loupeX !== null && loupeY !== null) {
       positionLoupe(loupeX, loupeY);
     }
   }
 
-  const zoomUse = zoomButton?.querySelector('use');
+  var zoomUse = zoomButton ? zoomButton.querySelector('use') : null;
 
   function syncLoupeClone() {
     if (!magnifierContent || !slides[currentSlide]) return;
-    const sourceSlide = slides[currentSlide];
-    const clone = sourceSlide.cloneNode(true);
+    var sourceSlide = slides[currentSlide];
+    var clone = sourceSlide.cloneNode(true);
     clone.removeAttribute('id');
-    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    var withIds = clone.querySelectorAll('[id]');
+    for (var i = 0; i < withIds.length; i++) {
+      withIds[i].removeAttribute('id');
+    }
     clone.classList.remove('entering');
     clone.setAttribute('aria-hidden', 'true');
     clone.tabIndex = -1;
 
     if (mobile.matches) {
-      clone.style.width = `${sourceSlide.offsetWidth}px`;
-      clone.style.height = `${sourceSlide.offsetHeight}px`;
+      clone.style.width = sourceSlide.offsetWidth + 'px';
+      clone.style.height = sourceSlide.offsetHeight + 'px';
     }
 
-    magnifierContent.replaceChildren(clone);
+    clearChildren(magnifierContent);
+    magnifierContent.appendChild(clone);
     loupeClone = clone;
     if (loupeX !== null && loupeY !== null) {
       positionLoupe(loupeX, loupeY);
@@ -253,32 +318,32 @@
 
   function positionLoupe(x, y) {
     if (!magnifierLens || !loupeClone) return;
-    const lensRadius = (magnifierLens.offsetWidth || 236) / 2;
-    const stageW = stage.clientWidth || 1;
-    const stageH = stage.clientHeight || 1;
-    const cx = Math.max(0, Math.min(stageW, x));
-    const cy = Math.max(0, Math.min(stageH, y));
+    var lensRadius = (magnifierLens.offsetWidth || 236) / 2;
+    var stageW = stage.clientWidth || 1;
+    var stageH = stage.clientHeight || 1;
+    var cx = Math.max(0, Math.min(stageW, x));
+    var cy = Math.max(0, Math.min(stageH, y));
     loupeX = cx;
     loupeY = cy;
 
-    const baseScale = mobile.matches ? 1 : stageW / 1440;
-    const loupeScale = baseScale * LOUPE_MAG;
-    const tx = lensRadius - cx * LOUPE_MAG;
-    const ty = lensRadius - cy * LOUPE_MAG;
+    var baseScale = mobile.matches ? 1 : stageW / 1440;
+    var loupeScale = baseScale * LOUPE_MAG;
+    var tx = lensRadius - cx * LOUPE_MAG;
+    var ty = lensRadius - cy * LOUPE_MAG;
 
-    magnifierLens.style.transform = `translate3d(${(cx - lensRadius).toFixed(1)}px, ${(cy - lensRadius).toFixed(1)}px, 0)`;
-    loupeClone.style.transform = `translate3d(${tx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) scale(${loupeScale.toFixed(4)})`;
+    magnifierLens.style.transform = 'translate3d(' + (cx - lensRadius).toFixed(1) + 'px, ' + (cy - lensRadius).toFixed(1) + 'px, 0)';
+    loupeClone.style.transform = 'translate3d(' + tx.toFixed(1) + 'px, ' + ty.toFixed(1) + 'px, 0) scale(' + loupeScale.toFixed(4) + ')';
   }
 
   function setLoupe(nextState) {
     isLoupeActive = Boolean(nextState);
     stage.classList.toggle('is-loupe', isLoupeActive);
     if (zoomButton) {
-      const label = isLoupeActive ? 'カーソル拡大鏡をオフにする' : 'カーソル拡大鏡を有効にする';
+      var label = isLoupeActive ? 'カーソル拡大鏡をオフにする' : 'カーソル拡大鏡を有効にする';
       zoomButton.setAttribute('aria-pressed', String(isLoupeActive));
       zoomButton.setAttribute('aria-label', label);
       zoomButton.title = (isLoupeActive ? 'カーソル拡大鏡オフ' : 'カーソル拡大鏡') + ' (Z)';
-      if (zoomUse) zoomUse.setAttribute('href', isLoupeActive ? '#icon-zoom-out' : '#icon-zoom-in');
+      setUseHref(zoomUse, isLoupeActive ? '#icon-zoom-out' : '#icon-zoom-in');
     }
 
     if (!magnifierLens) return;
@@ -292,57 +357,72 @@
       announcer.textContent = 'カーソル拡大鏡を有効にしました。カーソルを動かすと拡大できます。';
     } else {
       magnifierLens.hidden = true;
-      magnifierContent?.replaceChildren();
+      clearChildren(magnifierContent);
       loupeClone = null;
       announcer.textContent = 'カーソル拡大鏡を終了しました。';
     }
   }
 
   function readHash() {
-    const match = location.hash.match(/^#slide-(\d+)$/);
+    var match = location.hash.match(/^#slide-(\d+)$/);
     if (!match) return 0;
-    const index = Number(match[1]) - 1;
+    var index = Number(match[1]) - 1;
     return index >= 0 && index < slides.length ? index : 0;
   }
 
-  function goToSlide(index, { updateHash = true, focus = false, animate = true } = {}) {
-    if (!Number.isInteger(index) || index < 0 || index >= slides.length) return;
-    const changed = currentSlide !== index;
-    const focusIsInSlide = slides.some(slide => slide.contains(document.activeElement));
+  function goToSlide(index, options) {
+    var opts = options || {};
+    var updateHash = opts.updateHash !== undefined ? opts.updateHash : true;
+    var focus = Boolean(opts.focus);
+    var animate = opts.animate !== undefined ? opts.animate : true;
+
+    if (typeof index !== 'number' || isNaN(index) || index < 0 || index >= slides.length) return;
+    var changed = currentSlide !== index;
+    var focusIsInSlide = false;
+    for (var k = 0; k < slides.length; k++) {
+      if (slides[k].contains(document.activeElement)) {
+        focusIsInSlide = true;
+        break;
+      }
+    }
     currentSlide = index;
     clearTimeout(transitionTimer);
 
-    slides.forEach((slide, i) => {
-      const active = i === index;
+    for (var i = 0; i < slides.length; i++) {
+      var slide = slides[i];
+      var active = i === index;
       slide.hidden = !active;
       slide.inert = !active;
       slide.classList.toggle('active', active);
       slide.classList.remove('entering');
-    });
+    }
 
     if (changed && animate) {
       slides[index].classList.add('entering');
-      transitionTimer = setTimeout(() => slides[index].classList.remove('entering'), 380);
+      transitionTimer = setTimeout(function () {
+        slides[index].classList.remove('entering');
+      }, 380);
     }
 
-    slideButtons.forEach((button, i) => {
-      button.classList.toggle('current', i === index);
-      if (i === index) button.setAttribute('aria-current', 'step');
+    for (var b = 0; b < slideButtons.length; b++) {
+      var button = slideButtons[b];
+      button.classList.toggle('current', b === index);
+      if (b === index) button.setAttribute('aria-current', 'step');
       else button.removeAttribute('aria-current');
-    });
+    }
 
     previousButton.disabled = index === 0;
     nextButton.disabled = index === slides.length - 1;
     document.querySelector('.skip-link').href = '#slide-' + (index + 1);
     if (mobileSlideLabel) {
-      mobileSlideLabel.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + ' · ' + slides[index].dataset.title;
+      mobileSlideLabel.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + ' · ' + slides[index].getAttribute('data-title');
     }
     closeMobileNav();
 
     if (updateHash && location.hash !== '#slide-' + (index + 1)) {
       try {
         history.replaceState(null, '', '#slide-' + (index + 1));
-      } catch {
+      } catch (err) {
         location.hash = 'slide-' + (index + 1);
       }
     }
@@ -353,34 +433,49 @@
       stopPieAnimation();
     }
 
-    if (focus || focusIsInSlide) slides[index].focus({ preventScroll: true });
+    if (focus || focusIsInSlide) {
+      try {
+        slides[index].focus({ preventScroll: true });
+      } catch (err) {
+        slides[index].focus();
+      }
+    }
     if (isLoupeActive) {
       syncLoupeClone();
       if (magnifierLens && loupeX !== null && loupeY !== null) {
         magnifierLens.hidden = false;
       }
     }
-    if (changed && mobile.matches) window.scrollTo({ top: 0, behavior: 'instant' });
-    announcer.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + '：' + slides[index].dataset.title;
+    if (changed && mobile.matches) {
+      window.scrollTo(0, 0);
+    }
+    announcer.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + '：' + slides[index].getAttribute('data-title');
   }
 
-  function closeMobileNav({ restoreFocus = false } = {}) {
+  function closeMobileNav(options) {
+    var restoreFocus = options && options.restoreFocus;
     if (!slideNav || !mobileSlideTrigger) return;
-    const wasOpen = slideNav.classList.contains('is-open');
+    var wasOpen = slideNav.classList.contains('is-open');
     slideNav.classList.remove('is-open');
     mobileSlideTrigger.setAttribute('aria-expanded', 'false');
-    if (wasOpen && restoreFocus) mobileSlideTrigger.focus({ preventScroll: true });
+    if (wasOpen && restoreFocus) {
+      try {
+        mobileSlideTrigger.focus({ preventScroll: true });
+      } catch (err) {
+        mobileSlideTrigger.focus();
+      }
+    }
   }
 
   function toggleMobileNav() {
     if (!slideNav || !mobileSlideTrigger) return;
-    const isOpen = slideNav.classList.toggle('is-open');
+    var isOpen = slideNav.classList.toggle('is-open');
     mobileSlideTrigger.setAttribute('aria-expanded', String(isOpen));
   }
 
   function toggleFurigana() {
-    const hidden = document.body.classList.toggle('furigana-hidden');
-    const active = !hidden;
+    var hidden = document.body.classList.toggle('furigana-hidden');
+    var active = !hidden;
     furiganaToggle.setAttribute('aria-pressed', String(active));
     furiganaState.textContent = active ? '表示' : '非表示';
     if (isLoupeActive) syncLoupeClone();
@@ -388,41 +483,63 @@
   }
 
   function toast(message) {
-    const element = document.querySelector('#toast');
+    var element = document.querySelector('#toast');
     clearTimeout(toastTimer);
     element.textContent = message;
     element.hidden = false;
-    toastTimer = setTimeout(() => {
+    toastTimer = setTimeout(function () {
       element.hidden = true;
     }, 4000);
   }
 
-  const fullscreenUse = fullscreenButton.querySelector('use');
+  var fullscreenUse = fullscreenButton ? fullscreenButton.querySelector('use') : null;
 
-  async function toggleFullscreen() {
+  function getFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+  }
+
+  function toggleFullscreen() {
+    var docEl = document.documentElement;
+    var req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+    var exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
-      else toast('このブラウザは全画面表示に対応していません。');
-    } catch {
+      if (getFullscreenElement()) {
+        if (exit) exit.call(document);
+      } else if (req) {
+        req.call(docEl);
+      } else {
+        toast('このブラウザは全画面表示に対応していません。');
+      }
+    } catch (err) {
       toast('このウィンドウでは全画面表示を利用できません。');
     }
   }
 
-  document.querySelectorAll('[data-go]').forEach(button => {
-    button.addEventListener('click', () => goToSlide(Number(button.dataset.go), { focus: true }));
-  });
+  var goButtons = Array.prototype.slice.call(document.querySelectorAll('[data-go]'));
+  for (var g = 0; g < goButtons.length; g++) {
+    (function (btn) {
+      btn.addEventListener('click', function () {
+        goToSlide(Number(btn.getAttribute('data-go')), { focus: true });
+      });
+    })(goButtons[g]);
+  }
 
-  document.querySelector('.brand').addEventListener('click', event => {
+  document.querySelector('.brand').addEventListener('click', function (event) {
     event.preventDefault();
     goToSlide(0, { focus: true });
   });
 
-  previousButton.addEventListener('click', () => goToSlide(currentSlide - 1, { focus: true }));
-  nextButton.addEventListener('click', () => goToSlide(currentSlide + 1, { focus: true }));
+  previousButton.addEventListener('click', function () {
+    goToSlide(currentSlide - 1, { focus: true });
+  });
+  nextButton.addEventListener('click', function () {
+    goToSlide(currentSlide + 1, { focus: true });
+  });
   furiganaToggle.addEventListener('click', toggleFurigana);
   if (zoomButton) {
-    zoomButton.addEventListener('click', () => setLoupe(!isLoupeActive));
+    zoomButton.addEventListener('click', function () {
+      setLoupe(!isLoupeActive);
+    });
   }
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
@@ -430,119 +547,149 @@
     mobileSlideTrigger.addEventListener('click', toggleMobileNav);
   }
 
-  document.addEventListener('click', event => {
-    if (slideNav?.classList.contains('is-open') && !event.target.closest('#slide-nav-list, #mobile-slide-trigger')) {
+  document.addEventListener('click', function (event) {
+    if (slideNav && slideNav.classList.contains('is-open') && !closestEl(event.target, '#slide-nav-list, #mobile-slide-trigger')) {
       closeMobileNav();
     }
   });
 
   if (pieReplayBtn) {
-    pieReplayBtn.addEventListener('click', () => {
+    pieReplayBtn.addEventListener('click', function () {
       if (activeSliceId) selectSlice(activeSliceId);
       playPieAnimation();
     });
   }
 
   if (pieAllBtn) {
-    pieAllBtn.addEventListener('click', () => {
+    pieAllBtn.addEventListener('click', function () {
       if (activeSliceId) selectSlice(activeSliceId);
     });
   }
 
-  sliceGroups.forEach(group => {
-    const id = group.dataset.slice;
-    group.addEventListener('click', () => selectSlice(id));
-    group.addEventListener('keydown', event => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
+  for (var s = 0; s < sliceGroups.length; s++) {
+    (function (group) {
+      var id = group.getAttribute('data-slice');
+      group.addEventListener('click', function () {
         selectSlice(id);
-      }
-    });
+      });
+      group.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selectSlice(id);
+        }
+      });
+    })(sliceGroups[s]);
+  }
+
+  for (var l = 0; l < legendCards.length; l++) {
+    (function (card) {
+      card.addEventListener('click', function () {
+        selectSlice(card.getAttribute('data-select'));
+      });
+    })(legendCards[l]);
+  }
+
+  window.addEventListener('hashchange', function () {
+    goToSlide(readHash(), { updateHash: false });
   });
+  window.addEventListener('resize', fitStage);
+  if (typeof window.ResizeObserver === 'function') {
+    new window.ResizeObserver(fitStage).observe(stage);
+  }
 
-  legendCards.forEach(card => {
-    card.addEventListener('click', () => selectSlice(card.dataset.select));
-  });
-
-  window.addEventListener('hashchange', () => goToSlide(readHash(), { updateHash: false }));
-  new ResizeObserver(fitStage).observe(stage);
-
-  document.addEventListener('fullscreenchange', () => {
-    const active = Boolean(document.fullscreenElement);
-    const label = active ? '全画面表示を終了' : '全画面表示にする';
+  function onFullscreenChange() {
+    var active = Boolean(getFullscreenElement());
+    var label = active ? '全画面表示を終了' : '全画面表示にする';
     fullscreenButton.setAttribute('aria-label', label);
     fullscreenButton.title = label + ' (F)';
-    if (fullscreenUse) fullscreenUse.setAttribute('href', active ? '#collapse' : '#expand');
+    setUseHref(fullscreenUse, active ? '#collapse' : '#expand');
     fitStage();
     requestAnimationFrame(fitStage);
-  });
+  }
 
-  document.addEventListener('keydown', event => {
+  document.addEventListener('fullscreenchange', onFullscreenChange);
+  document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+  document.addEventListener('keydown', function (event) {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
-    if (event.key === 'Escape' && slideNav?.classList.contains('is-open')) {
+    var key = event.key || '';
+    if (key === 'Escape' && slideNav && slideNav.classList.contains('is-open')) {
       event.preventDefault();
       closeMobileNav({ restoreFocus: true });
       return;
     }
-    if (event.key === 'Escape' && isLoupeActive) {
+    if (key === 'Escape' && isLoupeActive) {
       event.preventDefault();
       setLoupe(false);
       return;
     }
-    const target = event.target;
-    if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
+    if (closestEl(event.target, 'input, textarea, select, [contenteditable="true"]')) return;
 
-    if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(event.key)) {
+    if (key === 'ArrowRight' || key === 'ArrowDown' || key === 'PageDown') {
       event.preventDefault();
       goToSlide(currentSlide + 1, { focus: true });
-    } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) {
+    } else if (key === 'ArrowLeft' || key === 'ArrowUp' || key === 'PageUp') {
       event.preventDefault();
       goToSlide(currentSlide - 1, { focus: true });
-    } else if (event.key === 'Home' || event.key === 'End') {
+    } else if (key === 'Home' || key === 'End') {
       event.preventDefault();
-      goToSlide(event.key === 'Home' ? 0 : slides.length - 1, { focus: true });
-    } else if (event.key.toLowerCase() === 'z') {
+      goToSlide(key === 'Home' ? 0 : slides.length - 1, { focus: true });
+    } else if (key.toLowerCase() === 'z') {
       event.preventDefault();
       setLoupe(!isLoupeActive);
-    } else if (event.key.toLowerCase() === 'f') {
+    } else if (key.toLowerCase() === 'f') {
       event.preventDefault();
       toggleFullscreen();
-    } else if (event.key === ' ' && !target.closest('button, a, summary, [role="button"]')) {
+    } else if (key === ' ' && !closestEl(event.target, 'button, a, summary, [role="button"]')) {
       event.preventDefault();
       goToSlide(event.shiftKey ? currentSlide - 1 : currentSlide + 1, { focus: true });
     }
   });
 
-  function handleStagePointer(event) {
+  function updateLoupeFromClientXY(clientX, clientY) {
     if (!isLoupeActive || !magnifierLens) return;
-    const rect = stage.getBoundingClientRect();
-    const x = event.clientX - rect.left - stage.clientLeft;
-    const y = event.clientY - rect.top - stage.clientTop;
+    var rect = stage.getBoundingClientRect();
+    var x = clientX - rect.left - (stage.clientLeft || 0);
+    var y = clientY - rect.top - (stage.clientTop || 0);
     magnifierLens.hidden = false;
     positionLoupe(x, y);
   }
 
-  stage.addEventListener('pointerenter', handleStagePointer);
-  stage.addEventListener('pointerdown', handleStagePointer);
-  stage.addEventListener('pointermove', handleStagePointer);
-  stage.addEventListener('pointerleave', event => {
-    if (!isLoupeActive || !magnifierLens || event.pointerType !== 'mouse') return;
+  stage.addEventListener('mousemove', function (event) {
+    updateLoupeFromClientXY(event.clientX, event.clientY);
+  });
+  stage.addEventListener('mouseenter', function (event) {
+    updateLoupeFromClientXY(event.clientX, event.clientY);
+  });
+  stage.addEventListener('mouseleave', function () {
+    if (!isLoupeActive || !magnifierLens) return;
     magnifierLens.hidden = true;
   });
 
-  let touchStart = null;
-  stage.addEventListener('touchstart', event => {
-    if (isLoupeActive || event.touches.length !== 1 || event.target.closest('button, input, textarea, a, [role="button"]')) {
+  var touchStart = null;
+  stage.addEventListener('touchstart', function (event) {
+    if (isLoupeActive && event.touches.length === 1) {
+      updateLoupeFromClientXY(event.touches[0].clientX, event.touches[0].clientY);
+      touchStart = null;
+      return;
+    }
+    if (event.touches.length !== 1 || closestEl(event.target, 'button, input, textarea, a, [role="button"]')) {
       touchStart = null;
       return;
     }
     touchStart = { x: event.touches[0].clientX, y: event.touches[0].clientY };
   }, { passive: true });
 
-  stage.addEventListener('touchend', event => {
+  stage.addEventListener('touchmove', function (event) {
+    if (isLoupeActive && event.touches.length === 1) {
+      updateLoupeFromClientXY(event.touches[0].clientX, event.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  stage.addEventListener('touchend', function (event) {
     if (!touchStart || event.changedTouches.length !== 1) return;
-    const deltaX = event.changedTouches[0].clientX - touchStart.x;
-    const deltaY = event.changedTouches[0].clientY - touchStart.y;
+    var deltaX = event.changedTouches[0].clientX - touchStart.x;
+    var deltaY = event.changedTouches[0].clientY - touchStart.y;
     if (Math.abs(deltaX) > 75 && Math.abs(deltaX) > Math.abs(deltaY) * 1.8) {
       if (deltaX < 0) goToSlide(currentSlide + 1, { focus: true });
       else goToSlide(currentSlide - 1, { focus: true });
@@ -550,22 +697,22 @@
     touchStart = null;
   }, { passive: true });
 
-  stage.addEventListener('touchcancel', () => {
+  stage.addEventListener('touchcancel', function () {
     touchStart = null;
   }, { passive: true });
 
-  window.addEventListener('beforeprint', () => {
+  window.addEventListener('beforeprint', function () {
     stopPieAnimation();
-    slides.forEach(slide => {
-      slide.inert = false;
-    });
+    for (var i = 0; i < slides.length; i++) {
+      slides[i].inert = false;
+    }
     renderPieAt(1);
   });
 
-  window.addEventListener('afterprint', () => {
-    slides.forEach((slide, index) => {
-      slide.inert = index !== currentSlide;
-    });
+  window.addEventListener('afterprint', function () {
+    for (var i = 0; i < slides.length; i++) {
+      slides[i].inert = i !== currentSlide;
+    }
   });
 
   initProtractorTicks();
