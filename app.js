@@ -7,6 +7,7 @@
   const previousButton = document.querySelector('.previous');
   const nextButton = document.querySelector('.next');
   const announcer = document.querySelector('#slide-announcer');
+  const zoomButton = document.querySelector('#zoom-button');
   const fullscreenButton = document.querySelector('#fullscreen-button');
   const furiganaToggle = document.querySelector('#furigana-toggle');
   const furiganaState = document.querySelector('#furigana-state');
@@ -66,11 +67,14 @@
     detail: '最も割合が高いのはSNSで4名（66.6%）を占める。次にゲームが1名（16.7%）、日本語辞典の利用も同じく1名で16.7%を占めている。'
   };
 
+  const ZOOM_FACTOR = 1.55;
+
   let currentSlide = 0;
   let transitionTimer;
   let toastTimer;
   let pieRafId = null;
   let activeSliceId = null;
+  let isZoomed = false;
 
   function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
@@ -209,7 +213,26 @@
   }
 
   function fitStage() {
-    stage.style.setProperty('--deck-scale', stage.clientWidth / 1440);
+    const baseWidth = Math.max(1, stage.getBoundingClientRect().width - 6);
+    const scale = (baseWidth / 1440) * (isZoomed ? ZOOM_FACTOR : 1);
+    stage.style.setProperty('--deck-scale', scale);
+  }
+
+  const zoomUse = zoomButton?.querySelector('use');
+
+  function setZoom(nextState) {
+    isZoomed = Boolean(nextState);
+    stage.classList.toggle('is-zoomed', isZoomed);
+    if (zoomButton) {
+      const label = isZoomed ? '拡大表示を解除' : 'スライドを拡大表示にする';
+      zoomButton.setAttribute('aria-pressed', String(isZoomed));
+      zoomButton.setAttribute('aria-label', label);
+      zoomButton.title = (isZoomed ? '元のサイズに戻す' : '拡大表示') + ' (Z)';
+      if (zoomUse) zoomUse.setAttribute('href', isZoomed ? '#icon-zoom-out' : '#icon-zoom-in');
+    }
+    fitStage();
+    stage.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    announcer.textContent = isZoomed ? 'スライドを拡大表示にしました。' : 'スライドを通常表示に戻しました。';
   }
 
   function readHash() {
@@ -268,6 +291,7 @@
     }
 
     if (focus || focusIsInSlide) slides[index].focus({ preventScroll: true });
+    if (isZoomed) stage.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     if (changed && mobile.matches) window.scrollTo({ top: 0, behavior: 'instant' });
     announcer.textContent = 'スライド ' + (index + 1) + ' / ' + slides.length + '：' + slides[index].dataset.title;
   }
@@ -328,6 +352,9 @@
   previousButton.addEventListener('click', () => goToSlide(currentSlide - 1, { focus: true }));
   nextButton.addEventListener('click', () => goToSlide(currentSlide + 1, { focus: true }));
   furiganaToggle.addEventListener('click', toggleFurigana);
+  if (zoomButton) {
+    zoomButton.addEventListener('click', () => setZoom(!isZoomed));
+  }
   fullscreenButton.addEventListener('click', toggleFullscreen);
 
   if (mobileSlideTrigger) {
@@ -388,18 +415,28 @@
       closeMobileNav({ restoreFocus: true });
       return;
     }
+    if (event.key === 'Escape' && isZoomed) {
+      event.preventDefault();
+      setZoom(false);
+      return;
+    }
     const target = event.target;
     if (target.closest('input, textarea, select, [contenteditable="true"]')) return;
 
     if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(event.key)) {
+      if (isZoomed && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) return;
       event.preventDefault();
       goToSlide(currentSlide + 1, { focus: true });
     } else if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) {
+      if (isZoomed && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) return;
       event.preventDefault();
       goToSlide(currentSlide - 1, { focus: true });
     } else if (event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
       goToSlide(event.key === 'Home' ? 0 : slides.length - 1, { focus: true });
+    } else if (event.key.toLowerCase() === 'z') {
+      event.preventDefault();
+      setZoom(!isZoomed);
     } else if (event.key.toLowerCase() === 'f') {
       event.preventDefault();
       toggleFullscreen();
@@ -409,9 +446,37 @@
     }
   });
 
+  let panStart = null;
+  stage.addEventListener('pointerdown', event => {
+    if (!isZoomed || event.pointerType !== 'mouse' || event.button !== 0) return;
+    if (event.target.closest('button, a, input, textarea, select, [role="button"]')) return;
+    panStart = {
+      x: event.clientX,
+      y: event.clientY,
+      scrollLeft: stage.scrollLeft,
+      scrollTop: stage.scrollTop
+    };
+    stage.classList.add('is-panning');
+  });
+
+  window.addEventListener('pointermove', event => {
+    if (!panStart) return;
+    stage.scrollLeft = panStart.scrollLeft - (event.clientX - panStart.x);
+    stage.scrollTop = panStart.scrollTop - (event.clientY - panStart.y);
+  });
+
+  function stopPan() {
+    if (!panStart) return;
+    panStart = null;
+    stage.classList.remove('is-panning');
+  }
+
+  window.addEventListener('pointerup', stopPan);
+  window.addEventListener('pointercancel', stopPan);
+
   let touchStart = null;
   stage.addEventListener('touchstart', event => {
-    if (event.touches.length !== 1 || event.target.closest('button, input, textarea, a, [role="button"]')) {
+    if (isZoomed || event.touches.length !== 1 || event.target.closest('button, input, textarea, a, [role="button"]')) {
       touchStart = null;
       return;
     }

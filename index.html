@@ -8,8 +8,8 @@
   <title>スマホで一番よく使う機能 · 作文調査発表</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script>document.documentElement.classList.add('js');</script>
-  <link rel="stylesheet" href="styles.css?v=20261121-2">
-  <script src="app.js?v=20261121-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261121-3">
+  <script src="app.js?v=20261121-2" defer></script>
 </head>
 <body>
   <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -133,7 +133,8 @@
       <symbol id="expand" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></symbol>
       <symbol id="collapse" viewBox="0 0 24 24"><path d="M4 9h5V4m11 5h-5V4M4 15h5v5m11-5h-5v5"/></symbol>
       <symbol id="icon-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
-      <symbol id="icon-reset" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></symbol>
+      <symbol id="icon-zoom-in" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M10.5 7.5v6M7.5 10.5h6"/></symbol>
+      <symbol id="icon-zoom-out" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M7.5 10.5h6"/></symbol>
     </defs>
   </svg>
 
@@ -152,8 +153,11 @@
           <span>ふりがな</span>
           <span class="toggle-state" id="furigana-state">表示</span>
         </button>
+        <button class="icon-button" id="zoom-button" type="button" aria-pressed="false" aria-label="スライドを拡大表示にする" title="拡大表示 (Z)">
+          <svg aria-hidden="true"><use href="#icon-zoom-in"/></svg>
+        </button>
         <button class="icon-button" id="fullscreen-button" type="button" aria-label="全画面表示にする" title="全画面表示 (F)">
-          <svg><use href="#expand"/></svg>
+          <svg aria-hidden="true"><use href="#expand"/></svg>
         </button>
       </div>
     </header>
