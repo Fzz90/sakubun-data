@@ -978,6 +978,14 @@ html:fullscreen {
   color: var(--chalk-white);
 }
 
+.chart-panel {
+  padding: 20px 28px;
+}
+
+.chart-panel .panel-top-row {
+  margin-bottom: 10px;
+}
+
 .pie-stage-wrap {
   flex: 1 1 auto;
   display: flex;
@@ -987,8 +995,8 @@ html:fullscreen {
 }
 
 .pie-svg {
-  width: min(444px, 100%);
-  max-height: 454px;
+  width: min(504px, 100%);
+  max-height: 504px;
   height: auto;
   overflow: visible;
 }
@@ -1004,14 +1012,6 @@ html:fullscreen {
 
 .pie-slice-label {
   transition: opacity 280ms var(--ease-out);
-}
-
-.pie-hint {
-  text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-top: 6px;
 }
 
 .breakdown-panel .panel-top-row {
@@ -1763,7 +1763,7 @@ html:fullscreen {
   }
 
   .pie-svg {
-    width: min(340px, 100%);
+    width: min(380px, 100%);
     max-height: none;
   }
 
@@ -2106,7 +2106,6 @@ html:fullscreen {
   .start-button,
   .restart-button,
   .chart-controls,
-  .pie-hint,
   .magnifier-lens {
     display: none !important;
   }
