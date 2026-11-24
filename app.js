@@ -45,7 +45,7 @@
       pct: 66.6,
       title: 'SNS（4名 · 66.6%）',
       formula: '4 / 6 = 66.6% · 240°',
-      detail: '回答者：Raya（Instagram・9h）／ Arkana（Instagram・YouTube・7h）／ Naila（TikTok・8h）／ Nabila（Twitter・X・5h）。最も高い割合を占めている。'
+      detail: '回答者：R***（Instagram・9h）／ A*****（Instagram・YouTube・7h）／ N****（TikTok・8h）／ N*****（Twitter・X・5h）。最も高い割合を占めている。'
     },
     {
       id: 'game',
@@ -54,7 +54,7 @@
       pct: 16.7,
       title: 'ゲーム（1名 · 16.7%）',
       formula: '1 / 6 = 16.7% · 60°',
-      detail: '回答者：Ara（ゲーム・8h）。勉強は紙で行うため、スマホでは主にゲームを利用している。'
+      detail: '回答者：A**（ゲーム・8h）。勉強は紙で行うため、スマホでは主にゲームを利用している。'
     },
     {
       id: 'dict',
@@ -63,7 +63,7 @@
       pct: 16.7,
       title: '日本語辞典（1名 · 16.7%）',
       formula: '1 / 6 = 16.7% · 60°',
-      detail: '回答者：Raphael（Takoboto・8h）。わからない日本語の言葉をすぐ調べるために利用している。'
+      detail: '回答者：R******（Takoboto・8h）。わからない日本語の言葉をすぐ調べるために利用している。'
     }
   ];
 
